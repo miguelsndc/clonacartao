@@ -9,8 +9,8 @@ interface RequestPayload {
   expires_in: string
 }
 
-type Data = {
-  name: string
+interface Data extends RequestPayload {
+  id: string
 }
 
 export default async function handler(
@@ -21,8 +21,7 @@ export default async function handler(
 
   const { number, name, CVV, expires_in } = req.body as RequestPayload
 
-  if (![number, name, CVV, expires_in].every(Boolean))
-    return res.status(400).end()
+  if (![number, name, CVV, expires_in].every(Boolean)) res.status(400).end()
 
   try {
     const card = await prisma.card.create({
@@ -34,8 +33,8 @@ export default async function handler(
       },
     })
 
-    return res.status(201).json(card)
+    res.status(201).json(card)
   } catch (error) {
-    return res.status(500).end()
+    res.status(500).end()
   }
 }
