@@ -34,8 +34,6 @@ export default async function handler(
       },
     })
 
-    console.log(card)
-
     return res.status(201).json(card)
   } catch (error) {
     return res.status(500).end()
