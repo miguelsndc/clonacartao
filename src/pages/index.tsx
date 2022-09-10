@@ -1,3 +1,4 @@
+import IMask from 'imask'
 import { GetServerSideProps } from 'next'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -11,12 +12,21 @@ interface Card {
   expires_in: string
 }
 
+const normalizer = (text: string, mask: string) => {
+  const masked = IMask.createMask({
+    mask,
+  })
+
+  return masked.resolve(text)
+}
+
 interface FormFields extends Omit<Card, 'id'> {}
 
 export default function Home({ cards: cardsFromServer }: { cards: Card[] }) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { isSubmitting },
   } = useForm<FormFields>()
 
@@ -36,6 +46,8 @@ export default function Home({ cards: cardsFromServer }: { cards: Card[] }) {
       })
   }
 
+  console.log('render')
+
   return (
     <div className='w-screen min-h-screen flex flex-col items-center justify-center p-2'>
       <form
@@ -46,9 +58,18 @@ export default function Home({ cards: cardsFromServer }: { cards: Card[] }) {
           <span className='block font-medium'>Número do cartão:</span>
           <input
             className='border border-indigo-200 p-2 rounded w-full'
-            type='text'
+            type='tel'
             id='number'
-            {...register('number')}
+            inputMode='numeric'
+            autoComplete='cc-number'
+            {...register('number', {
+              onChange: event => {
+                setValue(
+                  'number',
+                  normalizer(event.target.value, '0000 0000 0000 0000')
+                )
+              },
+            })}
           />
         </label>
         <label className='flex flex-col gap-1 my-2'>
@@ -57,25 +78,37 @@ export default function Home({ cards: cardsFromServer }: { cards: Card[] }) {
             className='border border-indigo-200 p-2 rounded w-full'
             type='text'
             id='name'
-            {...register('name')}
+            {...register('name', {
+              onChange: event => {
+                setValue('name', String(event.target.value).toLocaleUpperCase())
+              },
+            })}
           />
         </label>
         <label className='flex flex-col gap-1 my-2'>
           <span className='block font-medium'>Código de segurança (CVV):</span>
           <input
             className='border border-indigo-200 p-2 rounded w-full'
-            type='text'
+            type='tel'
             id='CVV'
-            {...register('CVV')}
+            {...register('CVV', {
+              onChange: event => {
+                setValue('CVV', normalizer(event.target.value, '000'))
+              },
+            })}
           />
         </label>
         <label className='flex flex-col gap-1 my-2'>
           <span className='block font-medium'>Data de validade:</span>
           <input
             className='border border-indigo-200 p-2 rounded w-full'
-            type='text'
+            type='tel'
             id='expires_in'
-            {...register('expires_in')}
+            {...register('expires_in', {
+              onChange: event => {
+                setValue('expires_in', normalizer(event.target.value, '00/00'))
+              },
+            })}
           />
         </label>
         <button
